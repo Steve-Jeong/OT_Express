@@ -10,15 +10,11 @@
   "directories": {
     "lib": "lib"
   },
-  "repository": {
-
-  },
-  "bugs": {
-
-  },
-
+  "repository": {},
+  "bugs": {},
   "description": "",
   "dependencies": {
+    "express": "^4.17.1",
     "sanitize-html": "^1.27.4"
   }
 }
