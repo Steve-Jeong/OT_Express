@@ -7,9 +7,12 @@ const path = require('path');
 const sanitizeHtml = require('sanitize-html');
 const bodyParser = require('body-parser');
 const compression = require('compression')
+const helmet = require('helmet')
+
+app.use(helmet())
 
 app.use(express.static('public'))
-app.use(compression({level:6}))
+app.use(compression({ level: 6 }))
 app.use(bodyParser.urlencoded({ extended: false }))
 app.get('*', (request, response, next) => {
   fs.readdir('data', 'utf8', (err, filelist) => {
@@ -30,7 +33,7 @@ app.get('/page/:id', (request, response, next) => {
   var title = request.params.id;
   var filteredTitle = path.parse(title).base;
   fs.readFile(`data/${filteredTitle}`, 'utf8', (err, description) => {
-    if(err) {
+    if (err) {
       next(err);
     } else {
       var contents = template.Contents(request.filelist);
@@ -45,7 +48,7 @@ app.get('/page/:id', (request, response, next) => {
         </form>
         `, response)
     }
-    
+
   })
 })
 
