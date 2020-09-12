@@ -8,6 +8,7 @@ const sanitizeHtml = require('sanitize-html');
 const bodyParser = require('body-parser');
 const compression = require('compression')
 
+app.use(express.static('public'))
 app.use(compression({level:6}))
 app.use(bodyParser.urlencoded({ extended: false }))
 app.get('*', (request, response, next) => {
@@ -25,21 +26,26 @@ app.get('/', (request, response) => {
   template.makePage(title, contents, template.Body(title, description), `<a href="/create">create</a>`, response)
 })
 
-app.get('/page/:id', (request, response) => {
+app.get('/page/:id', (request, response, next) => {
   var title = request.params.id;
   var filteredTitle = path.parse(title).base;
   fs.readFile(`data/${filteredTitle}`, 'utf8', (err, description) => {
-    var contents = template.Contents(request.filelist);
-    var sanitizedTitle = sanitizeHtml(title);
-    var sanitizedDescription = sanitizeHtml(description);
-    template.makePage(sanitizedTitle, contents, template.Body(sanitizedTitle, sanitizedDescription),
-      `<a href="/create">create</a> 
-      <a href="/update/${sanitizedTitle}">update</a>
-      <form action="/delete_process" method="post">
-        <input type="hidden" name="id" value="${sanitizedTitle}">
-        <input type="submit" value="delete">
-      </form>
-      `, response)
+    if(err) {
+      next(err);
+    } else {
+      var contents = template.Contents(request.filelist);
+      var sanitizedTitle = sanitizeHtml(title);
+      var sanitizedDescription = sanitizeHtml(description);
+      template.makePage(sanitizedTitle, contents, template.Body(sanitizedTitle, sanitizedDescription),
+        `<a href="/create">create</a> 
+        <a href="/update/${sanitizedTitle}">update</a>
+        <form action="/delete_process" method="post">
+          <input type="hidden" name="id" value="${sanitizedTitle}">
+          <input type="submit" value="delete">
+        </form>
+        `, response)
+    }
+    
   })
 })
 
@@ -103,8 +109,9 @@ app.post('/delete_process', (request, response) => {
   })
 })
 
-app.get('*', (req, res) => {
-  res.status(404).send('Sorry Invalid Page')
+app.use(function (err, req, res, next) {
+  console.error(err.stack)
+  res.status(500).send('Requested URL do not exist')
 })
 
 app.listen(3000, () => console.log('Listening on port 3000!'))
